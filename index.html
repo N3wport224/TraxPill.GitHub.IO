@@ -3,78 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PillTracker</title>
+    <title>PillTracker Pro</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h2 { color: #1a73e8; text-align: center; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        button { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        .pill-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .pill-info { display: flex; align-items: center; gap: 10px; }
-        .toggle-btn { width: 50px; height: 26px; border-radius: 13px; border: none; background: #ccc; position: relative; cursor: pointer; transition: 0.3s; }
-        .toggle-btn.taken { background: #34a853; }
-        .toggle-circle { width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; left: 2px; top: 2px; transition: 0.3s; }
-        .toggle-btn.taken .toggle-circle { left: 26px; }
-        .delete-btn { color: #d93025; font-size: 12px; cursor: pointer; margin-left: 10px; }
+        :root { --primary: #1a73e8; --bg: #f8f9fa; --text: #333; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
+        .container { max-width: 500px; margin: auto; padding: 20px; }
+        
+        /* Navigation */
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #ddd; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
+        nav button { background: none; border: none; color: #666; font-size: 14px; cursor: pointer; }
+        nav button.active { color: var(--primary); font-weight: bold; }
+
+        /* Screens */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* UI Elements */
+        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; }
+        
+        /* Pill List Item */
+        .pill-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .toggle { width: 40px; height: 20px; background: #ccc; border-radius: 10px; position: relative; cursor: pointer; }
+        .toggle.on { background: #34a853; }
+        .toggle-circle { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: 0.2s; }
+        .toggle.on .toggle-circle { left: 22px; }
+        
+        .history-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
+        .day-box { height: 30px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .day-box.done { background: #34a853; color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>My Meds</h2>
-    <div class="input-group">
-        <input type="text" id="pillName" placeholder="Pill name (e.g. Vitamin D)">
-        <button onclick="addPill()">Add</button>
+    <div id="screen-add" class="screen active">
+        <h2>Add Medication</h2>
+        <div class="card">
+            <input type="text" id="pillInput" placeholder="Pill Name (e.g. Advil)">
+            <button class="btn-main" onclick="addPill()">Add to List</button>
+        </div>
+        <div id="manageList"></div>
     </div>
-    <div id="pillList"></div>
+
+    <div id="screen-track" class="screen">
+        <h2>Today's Intake</h2>
+        <p id="todayDate"></p>
+        <div id="dailyList"></div>
+    </div>
+
+    <div id="screen-overview" class="screen">
+        <h2>Progress Overview</h2>
+        <div id="overviewContent"></div>
+    </div>
 </div>
 
-<script>
-    let pills = JSON.parse(localStorage.getItem('myPills')) || [];
+<nav>
+    <button onclick="showScreen('add')" id="nav-add" class="active">Add</button>
+    <button onclick="showScreen('track')" id="nav-track">Track</button>
+    <button onclick="showScreen('overview')" id="nav-overview">Overview</button>
+</nav>
 
-    function saveAndRender() {
-        localStorage.setItem('myPills', JSON.stringify(pills));
-        const list = document.getElementById('pillList');
-        list.innerHTML = '';
-        
-        pills.forEach((pill, index) => {
-            const div = document.createElement('div');
-            div.className = 'pill-item';
-            div.innerHTML = `
-                <div class="pill-info">
-                    <span>${pill.name}</span>
-                    <span class="delete-btn" onclick="deletePill(${index})">Delete</span>
-                </div>
-                <button class="toggle-btn ${pill.taken ? 'taken' : ''}" onclick="togglePill(${index})">
-                    <div class="toggle-circle"></div>
-                </button>
-            `;
-            list.appendChild(div);
-        });
+<script>
+    let pills = JSON.parse(localStorage.getItem('pills')) || [];
+    let history = JSON.parse(localStorage.getItem('pillHistory')) || {}; // Date key: {pillName: true/false}
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('screen-' + screenId).classList.add('active');
+        document.getElementById('nav-' + screenId).classList.add('active');
+        render();
     }
 
     function addPill() {
-        const name = document.getElementById('pillName').value;
-        if (name) {
-            pills.push({ name, taken: false });
-            document.getElementById('pillName').value = '';
-            saveAndRender();
+        const name = document.getElementById('pillInput').value;
+        if(name) {
+            pills.push(name);
+            document.getElementById('pillInput').value = '';
+            save();
         }
     }
 
-    function togglePill(index) {
-        pills[index].taken = !pills[index].taken;
-        saveAndRender();
+    function togglePill(pillName) {
+        const today = new Date().toISOString().split('T')[0];
+        if (!history[today]) history[today] = {};
+        history[today][pillName] = !history[today][pillName];
+        save();
     }
 
-    function deletePill(index) {
-        pills.splice(index, 1);
-        saveAndRender();
+    function save() {
+        localStorage.setItem('pills', JSON.stringify(pills));
+        localStorage.setItem('pillHistory', JSON.stringify(history));
+        render();
     }
 
-    saveAndRender();
+    function render() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('todayDate').innerText = new Date().toDateString();
+
+        // Render Add/Manage Screen
+        const manageList = document.getElementById('manageList');
+        manageList.innerHTML = '<h3>Your Meds</h3>' + pills.map(p => `<div class="pill-row"><span>${p}</span></div>`).join('');
+
+        // Render Tracking Screen
+        const dailyList = document.getElementById('dailyList');
+        dailyList.innerHTML = pills.map(p => {
+            const isTaken = history[today] && history[today][p];
+            return `
+                <div class="card pill-row">
+                    <span>${p}</span>
+                    <div class="toggle ${isTaken ? 'on' : ''}" onclick="togglePill('${p}')">
+                        <div class="toggle-circle"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Render Overview Screen (Weekly logic)
+        const overview = document.getElementById('overviewContent');
+        overview.innerHTML = pills.map(p => {
+            let boxes = '';
+            for(let i=6; i>=0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                const taken = history[dateStr] && history[dateStr][p];
+                boxes += `<div class="day-box ${taken ? 'done' : ''}">${d.getDate()}</div>`;
+            }
+            return `<div class="card"><strong>${p}</strong><div class="history-grid">${boxes}</div></div>`;
+        }).join('');
+    }
+
+    render();
 </script>
+
 </body>
 </html>
