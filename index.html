@@ -6,18 +6,93 @@
     <title>PillTracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --primary: #4f46e5; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; }
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        /* --- THEME VARIABLES --- */
+        :root { 
+            --bg: #f8fafc; 
+            --card: #ffffff; 
+            --text-main: #1e293b; 
+            --text-sub: #64748b; 
+            --border: #e2e8f0;
+            --primary: #4f46e5; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --filter: transparent;
+        }
+        
+        /* Dark Mode Overrides */
+        body.dark {
+            --bg: #0f172a; 
+            --card: #1e293b; 
+            --text-main: #f1f5f9; 
+            --text-sub: #94a3b8; 
+            --border: #334155;
+        }
+
+        /* Warm/Blue Filter Overlay */
+        body.blue-filter {
+            --filter: rgba(255, 140, 0, 0.1); 
+        }
+
+        /* GLOBAL STYLES */
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            -webkit-tap-highlight-color: transparent; 
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Overlay implementation */
+        body::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--filter); pointer-events: none; z-index: 9999;
+        }
+
+        /* UI COMPONENTS */
         .screen { display: none; }
-        .screen.active { display: block; animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0 env(safe-area-inset-bottom); border-top: 1px solid #e2e8f0; z-index: 50; }
-        nav button { color: #64748b; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .screen.active { display: block; animation: fadeIn 0.25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        nav { 
+            position: fixed; bottom: 0; width: 100%; 
+            background: var(--card); border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; 
+            padding: 12px 0 env(safe-area-inset-bottom); z-index: 50; 
+        }
+        nav button { color: var(--text-sub); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         nav button.active { color: var(--primary); font-weight: 700; }
-        .check-circle { width: 44px; height: 44px; border: 2px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: 0.2s; }
+        
+        /* Using CSS vars for cards to ensure Dark Mode works */
+        .card-panel { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 1rem; 
+            padding: 1rem; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 0.75rem;
+        }
+
+        .check-circle { 
+            width: 44px; height: 44px; 
+            border: 2px solid var(--border); 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; font-size: 18px; transition: 0.2s; 
+            background: var(--bg); /* Ensure empty circles aren't transparent in dark mode */
+        }
         .state-taken { background: var(--success); border-color: var(--success); color: white; }
         .state-missed { background: var(--danger); border-color: var(--danger); color: white; }
-        .time-chip { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 800; border: 1px solid #e2e8f0; }
+        
+        .time-chip { 
+            font-size: 10px; padding: 2px 8px; border-radius: 10px; 
+            font-weight: 800; border: 1px solid var(--border); 
+            background: var(--bg); color: var(--text-sub); 
+        }
+
+        /* Inputs adapt to theme */
+        input[type="text"], input[type="email"], input[type="password"] { 
+            background: var(--bg); color: var(--text-main); border: 1px solid var(--border); 
+        }
     </style>
 </head>
 <body class="pb-24">
@@ -25,63 +100,71 @@
     <div id="auth-section" class="flex items-center justify-center min-h-screen p-6">
         <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
             <h1 class="text-2xl font-black text-center mb-6 text-slate-800">Secure Med Tracker</h1>
-            <input type="email" id="login-email" placeholder="Email" class="w-full p-4 mb-4 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-indigo-500">
-            <input type="password" id="login-password" placeholder="Password" class="w-full p-4 mb-6 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-indigo-500">
-            <button id="login-btn" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg">Sign In / Register</button>
+            <input type="email" id="login-email" placeholder="Email" class="w-full p-4 mb-4 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-indigo-500 text-black">
+            <input type="password" id="login-password" placeholder="Password" class="w-full p-4 mb-6 rounded-2xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-indigo-500 text-black">
+            <button id="login-btn" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg hover:bg-indigo-700 transition">Sign In / Register</button>
         </div>
     </div>
 
     <div id="tracker-section" class="hidden">
-        <header class="bg-white p-6 border-b flex justify-between items-center sticky top-0 z-40">
-            <h2 class="text-xl font-bold text-slate-900">PillTracker</h2>
-            <button id="logout-btn" class="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-lg">LOGOUT</button>
+        <header class="p-6 border-b border-[var(--border)] flex justify-between items-center sticky top-0 z-40" style="background: var(--card)">
+            <h2 class="text-xl font-bold">PillTracker</h2>
+            <button id="logout-btn" class="text-xs font-bold text-red-500 bg-red-50/10 px-3 py-1 rounded-lg border border-red-200">LOGOUT</button>
         </header>
 
         <main class="p-4 max-w-xl mx-auto space-y-6">
             
             <section id="screen-add" class="screen active space-y-4">
-                <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-                    <h3 id="manage-title" class="font-bold text-slate-800">Add Medication</h3>
-                    <input type="text" id="pillInput" placeholder="Med Name" class="w-full p-3 border rounded-xl outline-none focus:border-indigo-500">
+                
+                <div class="card-panel space-y-3">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest opacity-50">App Theme</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setTheme('light')" class="p-2 text-[10px] font-bold border rounded-lg bg-white text-slate-800">LIGHT</button>
+                        <button onclick="setTheme('dark')" class="p-2 text-[10px] font-bold border rounded-lg bg-slate-900 text-white">DARK</button>
+                        <button onclick="setTheme('blue')" class="p-2 text-[10px] font-bold border rounded-lg bg-orange-50 text-orange-900">WARM</button>
+                    </div>
+                </div>
+
+                <div class="card-panel space-y-3">
+                    <h3 id="manage-title" class="font-bold">Add Medication</h3>
+                    <input type="text" id="pillInput" placeholder="Medication Name" class="w-full p-3 rounded-xl outline-none focus:border-indigo-500">
                     
-                    <div class="flex flex-wrap gap-2 text-xs font-bold">
-                        <label class="flex items-center gap-1 bg-slate-50 p-2 rounded-lg border cursor-pointer"><input type="checkbox" id="check-morning"> Morning</label>
-                        <label class="flex items-center gap-1 bg-slate-50 p-2 rounded-lg border cursor-pointer"><input type="checkbox" id="check-afternoon"> Noon</label>
-                        <label class="flex items-center gap-1 bg-slate-50 p-2 rounded-lg border cursor-pointer"><input type="checkbox" id="check-night"> Night</label>
-                        <label class="flex items-center gap-1 bg-indigo-50 text-indigo-600 p-2 rounded-lg border border-indigo-200 cursor-pointer"><input type="checkbox" id="check-prn"> As Needed</label>
+                    <div class="flex flex-wrap gap-2 text-xs font-bold select-none">
+                        <label class="flex items-center gap-2 p-2 rounded-lg border border-[var(--border)] cursor-pointer"><input type="checkbox" id="check-morning"> Morning</label>
+                        <label class="flex items-center gap-2 p-2 rounded-lg border border-[var(--border)] cursor-pointer"><input type="checkbox" id="check-afternoon"> Noon</label>
+                        <label class="flex items-center gap-2 p-2 rounded-lg border border-[var(--border)] cursor-pointer"><input type="checkbox" id="check-night"> Night</label>
+                        <label class="flex items-center gap-2 p-2 rounded-lg border border-indigo-500/30 text-indigo-500 cursor-pointer"><input type="checkbox" id="check-prn"> As Needed</label>
                     </div>
                     
-                    <button id="add-pill-btn" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-black">SAVE MEDICATION</button>
+                    <button id="add-pill-btn" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-black hover:bg-indigo-700 transition">SAVE MEDICATION</button>
                 </div>
-                <div id="manageList" class="space-y-2"></div>
+                <div id="manageList"></div>
             </section>
 
             <section id="screen-track" class="screen space-y-8">
-                <p id="todayDateDisplay" class="text-center text-sm font-bold text-slate-400 uppercase tracking-widest"></p>
-                <div id="tracker-container" class="space-y-8">
-                    <div id="slot-morning" class="hidden"><h4 class="text-xs font-black text-orange-500 uppercase mb-3">☀️ Morning</h4><div class="list space-y-3"></div></div>
-                    <div id="slot-afternoon" class="hidden"><h4 class="text-xs font-black text-blue-500 uppercase mb-3">🌤️ Noon</h4><div class="list space-y-3"></div></div>
-                    <div id="slot-night" class="hidden"><h4 class="text-xs font-black text-indigo-700 uppercase mb-3">🌙 Night</h4><div class="list space-y-3"></div></div>
-                    <div id="slot-prn" class="hidden"><h4 class="text-xs font-black text-slate-500 uppercase mb-3">🩹 As Needed</h4><div class="list space-y-3"></div></div>
+                <p id="todayDateDisplay" class="text-center text-sm font-bold opacity-50 uppercase tracking-widest"></p>
+                
+                <div id="tracker-container" class="space-y-6">
+                    <div id="slot-morning" class="hidden"><h4 class="text-xs font-black text-orange-500 uppercase mb-3 px-1">☀️ Morning</h4><div class="list"></div></div>
+                    <div id="slot-afternoon" class="hidden"><h4 class="text-xs font-black text-blue-500 uppercase mb-3 px-1">🌤️ Noon</h4><div class="list"></div></div>
+                    <div id="slot-night" class="hidden"><h4 class="text-xs font-black text-indigo-500 uppercase mb-3 px-1">🌙 Night</h4><div class="list"></div></div>
+                    <div id="slot-prn" class="hidden"><h4 class="text-xs font-black opacity-50 uppercase mb-3 px-1">🩹 As Needed</h4><div class="list"></div></div>
                 </div>
             </section>
 
             <section id="screen-stats" class="screen space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-slate-800">History Log</h3>
-                    <div class="flex gap-2">
-                        <button onclick="exportReport()" class="text-[10px] font-black bg-indigo-50 text-indigo-600 px-3 py-2 rounded-full border border-indigo-100 uppercase">Export</button>
-                        <button onclick="clearAllHistory()" class="text-[10px] font-black bg-red-50 text-red-600 px-3 py-2 rounded-full border border-red-100 uppercase">Clear All</button>
-                    </div>
+                    <h3 class="text-lg font-bold">History Log</h3>
+                    <button onclick="exportReport()" class="text-[10px] font-black bg-indigo-500/10 text-indigo-500 px-3 py-2 rounded-full border border-indigo-500/20 uppercase">Export Report</button>
                 </div>
                 <div id="historyByDate" class="space-y-6"></div>
             </section>
         </main>
 
         <nav>
-            <button onclick="showScreen('add')" id="nav-add" class="active"><span>📋</span>Meds</button>
-            <button onclick="showScreen('track')" id="nav-track"><span>✅</span>Today</button>
-            <button onclick="showScreen('stats')" id="nav-stats"><span>📊</span>Stats</button>
+            <button onclick="showScreen('add')" id="nav-add" class="active"><span class="text-xl">📋</span>Meds</button>
+            <button onclick="showScreen('track')" id="nav-track"><span class="text-xl">✅</span>Today</button>
+            <button onclick="showScreen('stats')" id="nav-stats"><span class="text-xl">📊</span>Stats</button>
         </nav>
     </div>
 
@@ -90,14 +173,15 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        // YOUR ACTUAL FIREBASE KEYS
         const firebaseConfig = {
-            apiKey: "AIzaSyBy4FKc0uWiFQY8gE1HvZVsKH0D1yhpyQw",
-            authDomain: "pill-tracker-dd696.firebaseapp.com",
-            projectId: "pill-tracker-dd696",
-            storageBucket: "pill-tracker-dd696.firebasestorage.app",
-            messagingSenderId: "361802253192",
-            appId: "1:361802253192:web:589bae4508ceae4a20303d",
-            measurementId: "G-DGQ2NT1YWG"
+          apiKey: "AIzaSyBy4FKc0uWiFQY8gE1HvZVsKH0D1yhpyQw",
+          authDomain: "pill-tracker-dd696.firebaseapp.com",
+          projectId: "pill-tracker-dd696",
+          storageBucket: "pill-tracker-dd696.firebasestorage.app",
+          messagingSenderId: "361802253192",
+          appId: "1:361802253192:web:589bae4508ceae4a20303d",
+          measurementId: "G-DGQ2NT1YWG"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -108,6 +192,16 @@
         let userPills = [];
         let globalHistory = [];
         let currentEditId = null;
+
+        // --- THEME MANAGEMENT ---
+        window.setTheme = (mode) => {
+            document.body.classList.remove('dark', 'blue-filter');
+            if(mode === 'dark') document.body.classList.add('dark');
+            if(mode === 'blue') document.body.classList.add('blue-filter');
+            localStorage.setItem('pillTheme', mode);
+        };
+        // Apply saved theme immediately
+        setTheme(localStorage.getItem('pillTheme') || 'light');
 
         const getLocalData = () => {
             const d = new Date();
@@ -156,6 +250,7 @@
                 prn: document.getElementById('check-prn').checked
             };
             if(!name) return;
+            
             if(currentEditId) {
                 await setDoc(doc(db, `users/${userId}/pills`, currentEditId), { name, ...sched }, { merge: true });
                 currentEditId = null;
@@ -198,18 +293,11 @@
             }
         };
 
-        window.clearAllHistory = async () => {
-            if (globalHistory.length === 0) return alert("No history to clear.");
-            if (confirm("Clear ALL history? This cannot be undone.") && confirm("Are you ABSOLUTELY sure?")) {
-                const promises = globalHistory.map(r => deleteDoc(doc(db, `users/${userId}/history`, r.id)));
-                await Promise.all(promises);
-                alert("History wiped.");
-            }
-        };
-
         window.exportReport = () => {
             let report = `MEDICATION REPORT\nGenerated: ${new Date().toLocaleString()}\n\n`;
-            globalHistory.slice(0, 50).forEach(h => {
+            // Sort by time descending
+            const sorted = [...globalHistory].sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            sorted.slice(0, 100).forEach(h => {
                 report += `[${h.dateDisplay} ${h.displayTime}] ${h.pillName} - ${h.status.toUpperCase()}\n`;
             });
             const win = window.open("", "Report", "width=600,height=800");
@@ -221,15 +309,16 @@
             document.getElementById('todayDateDisplay').innerText = local.verbose;
 
             document.getElementById('manageList').innerHTML = userPills.map(p => `
-                <div class="bg-white p-4 rounded-2xl flex justify-between items-center border">
-                    <div><div class="font-bold">${p.name}</div>
-                        <div class="flex gap-1 mt-1">
-                            ${p.morning ? '<span class="time-chip">AM</span>':''} ${p.afternoon ? '<span class="time-chip">NOON</span>':''} ${p.night ? '<span class="time-chip">PM</span>':''} ${p.prn ? '<span class="time-chip bg-indigo-50 border-indigo-200 text-indigo-600">PRN</span>':''}
+                <div class="card-panel flex justify-between items-center">
+                    <div>
+                        <div class="font-bold text-lg">${p.name}</div>
+                        <div class="flex gap-1 mt-1 opacity-70">
+                            ${p.morning ? '<span class="time-chip">AM</span>':''} ${p.afternoon ? '<span class="time-chip">NOON</span>':''} ${p.night ? '<span class="time-chip">PM</span>':''} ${p.prn ? '<span class="time-chip" style="color:var(--primary); border-color:var(--primary)">PRN</span>':''}
                         </div>
                     </div>
-                    <div class="flex gap-3">
-                        <button onclick="editPill('${p.id}')" class="text-xs font-bold text-indigo-500 uppercase">Edit</button>
-                        <button onclick="removePill('${p.id}')" class="text-xs font-bold text-red-400 uppercase">Delete</button>
+                    <div class="flex gap-4">
+                        <button onclick="editPill('${p.id}')" class="text-xs font-black uppercase text-indigo-500">Edit</button>
+                        <button onclick="removePill('${p.id}')" class="text-xs font-black uppercase text-red-500">Delete</button>
                     </div>
                 </div>
             `).join('');
@@ -242,8 +331,8 @@
                     container.querySelector('.list').innerHTML = filtered.map(p => {
                         const h = globalHistory.find(x => x.id === `${local.id}_${p.id}_${slot}`);
                         return `
-                            <div class="bg-white p-4 rounded-3xl flex justify-between items-center border shadow-sm">
-                                <div><div class="font-bold text-slate-800">${p.name}</div><div class="text-[10px] font-black uppercase text-slate-300">${h ? h.status + ' at ' + h.displayTime : 'Pending'}</div></div>
+                            <div class="card-panel flex justify-between items-center">
+                                <div><div class="font-bold">${p.name}</div><div class="text-[10px] font-black uppercase opacity-40">${h ? h.status + ' at ' + h.displayTime : 'Pending'}</div></div>
                                 <div class="check-circle ${h?.status === 'taken' ? 'state-taken' : h?.status === 'missed' ? 'state-missed' : ''}" onclick="toggleCycle('${p.id}', '${p.name}', '${slot}')">${h?.status === 'taken' ? '✓' : h?.status === 'missed' ? '✕' : ''}</div>
                             </div>
                         `;
@@ -263,19 +352,19 @@
                 });
                 return `
                     <div class="space-y-2">
-                        <h4 class="text-xs font-black text-slate-400 px-1 uppercase">${date}</h4>
+                        <h4 class="text-xs font-black opacity-40 px-1 uppercase tracking-tighter">${date}</h4>
                         <div class="space-y-2">${logs.map(log => `
-                            <div class="bg-white p-3 rounded-xl border flex justify-between items-center shadow-sm">
-                                <div><span class="text-[9px] font-black text-slate-400 uppercase">${log.timeSlot}</span><div class="font-bold text-sm">${log.pillName}</div></div>
+                            <div class="card-panel flex justify-between items-center py-3">
+                                <div><span class="text-[9px] font-black opacity-40 uppercase">${log.timeSlot}</span><div class="font-bold text-sm">${log.pillName}</div></div>
                                 <div class="text-xs font-black ${log.status === 'taken' ? 'text-emerald-500' : 'text-red-500'}">${log.status.toUpperCase()} @ ${log.displayTime}</div>
                             </div>
                         `).join('')}</div>
                     </div>
                 `;
-            }).join('') || '<div class="text-center p-10 text-slate-400">No history found.</div>';
+            }).join('') || '<div class="text-center p-10 opacity-30">No history records found.</div>';
         }
 
-        window.removePill = async (id) => { if(confirm('Delete medication?')) await deleteDoc(doc(db, `users/${userId}/pills/${id}`)); };
+        window.removePill = async (id) => { if(confirm('Permanently delete this medication?')) await deleteDoc(doc(db, `users/${userId}/pills/${id}`)); };
         document.getElementById('login-btn').addEventListener('click', () => {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-password').value;
