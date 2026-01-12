@@ -3,65 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>PillTracker Pro - Localized</title>
+    <title>PillTracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --primary: #4f46e5; --morning: #f59e0b; --afternoon: #0ea5e9; --night: #4338ca; --success: #10b981; --danger: #ef4444; }
-        body { font-family: 'Inter', system-ui, sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        :root { --primary: #4f46e5; --success: #10b981; --danger: #ef4444; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         .screen { display: none; }
         .screen.active { display: block; animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #e2e8f0; z-index: 50; padding-bottom: env(safe-area-inset-bottom); }
-        nav button { color: #64748b; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        nav button.active { color: var(--primary); font-weight: 700; }
-
-        .check-circle { width: 48px; height: 48px; border: 2px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 20px; }
-        .check-circle.state-taken { background: var(--success); border-color: var(--success); color: white; }
-        .check-circle.state-missed { background: var(--danger); border-color: var(--danger); color: white; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0 env(safe-area-inset-bottom); border-top: 1px solid #e2e8f0; z-index: 50; }
+        .check-circle { width: 48px; height: 48px; border: 2px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: 0.2s; }
+        .state-taken { background: var(--success); border-color: var(--success); color: white; }
+        .state-missed { background: var(--danger); border-color: var(--danger); color: white; }
     </style>
 </head>
-<body class="min-h-screen pb-24">
+<body class="pb-24">
 
     <div id="auth-section" class="flex items-center justify-center min-h-screen p-6">
         <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl">
-            <h1 class="text-2xl font-black text-center mb-6 text-slate-800">Secure Med Tracker</h1>
-            <div id="login-form" class="space-y-4">
-                <input type="email" id="login-email" placeholder="Email" class="w-full p-4 rounded-2xl bg-slate-50 border-none outline-none">
-                <input type="password" id="login-password" placeholder="Password" class="w-full p-4 rounded-2xl bg-slate-50 border-none outline-none">
-                <button id="login-btn" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg">Sign In</button>
-            </div>
+            <h1 class="text-2xl font-black text-center mb-6">Secure Med Tracker</h1>
+            <input type="email" id="login-email" placeholder="Email" class="w-full p-4 mb-4 rounded-2xl bg-slate-50 border-none outline-none">
+            <input type="password" id="login-password" placeholder="Password" class="w-full p-4 mb-6 rounded-2xl bg-slate-50 border-none outline-none">
+            <button id="login-btn" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold">Sign In / Register</button>
+            <p class="text-xs text-center text-slate-400 mt-4">Logging in with a new email will automatically create an account.</p>
         </div>
     </div>
 
     <div id="tracker-section" class="hidden">
         <header class="bg-white p-6 border-b flex justify-between items-center sticky top-0 z-40">
-            <h2 class="text-xl font-extrabold text-slate-900">PillTracker</h2>
-            <button id="logout-btn" class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-2 rounded-xl">LOGOUT</button>
+            <h2 class="text-xl font-bold">PillTracker</h2>
+            <button id="logout-btn" class="text-xs font-bold text-red-500">LOGOUT</button>
         </header>
 
         <main class="p-4 max-w-xl mx-auto space-y-6">
             <section id="screen-add" class="screen active space-y-4">
                 <div class="flex gap-2">
-                    <input type="text" id="pillInput" placeholder="New Med Name" class="flex-1 p-4 rounded-2xl border border-slate-200 outline-none">
-                    <button id="add-pill-btn" class="bg-indigo-600 text-white px-6 rounded-2xl font-black">ADD</button>
+                    <input type="text" id="pillInput" placeholder="New Med Name" class="flex-1 p-4 rounded-2xl border">
+                    <button id="add-pill-btn" class="bg-indigo-600 text-white px-6 rounded-2xl font-bold">ADD</button>
                 </div>
                 <div id="manageList" class="space-y-2"></div>
             </section>
 
-            <section id="screen-track" class="screen space-y-6">
-                <p id="todayDate" class="text-center text-sm font-bold text-slate-400 uppercase tracking-widest"></p>
-                <div id="tracker-container" class="space-y-8">
-                    <div id="slot-morning"></div>
-                    <div id="slot-afternoon"></div>
-                    <div id="slot-night"></div>
-                </div>
+            <section id="screen-track" class="screen space-y-8">
+                <p id="todayDateDisplay" class="text-center text-sm font-bold text-slate-400"></p>
+                <div id="slot-morning"></div>
+                <div id="slot-afternoon"></div>
+                <div id="slot-night"></div>
             </section>
 
             <section id="screen-stats" class="screen space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-slate-800">History Log</h3>
-                    <button onclick="exportReport()" class="text-xs font-black bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full border border-indigo-100">EXPORT REPORT</button>
+                    <h3 class="text-lg font-bold text-slate-800">History (MM/DD/YYYY)</h3>
+                    <button onclick="exportReport()" class="text-xs bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full font-bold">EXPORT</button>
                 </div>
                 <div id="activityLog" class="space-y-3"></div>
             </section>
@@ -76,16 +69,18 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        // --- PASTE YOUR KEYS HERE ---
         const firebaseConfig = {
-            apiKey: "AIzaSyDAMs4fq-aM3YJuBux2v4XRirGXGtW_bt4",
-            authDomain: "financial-tracker-705f1.firebaseapp.com",
-            projectId: "financial-tracker-705f1",
-            storageBucket: "financial-tracker-705f1.firebasestorage.app",
-            messagingSenderId: "284361332931",
-            appId: "1:284361332931:web:b287647d246eb70a49aa76"
+          apiKey: "AIzaSyBy4FKc0uWiFQY8gE1HvZVsKH0D1yhpyQw",
+          authDomain: "pill-tracker-dd696.firebaseapp.com",
+          projectId: "pill-tracker-dd696",
+          storageBucket: "pill-tracker-dd696.firebasestorage.app",
+          messagingSenderId: "361802253192",
+          appId: "1:361802253192:web:589bae4508ceae4a20303d",
+          measurementId: "G-DGQ2NT1YWG"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -97,17 +92,16 @@
         let globalHistory = [];
         let listeners = [];
 
-        // Helper: Get local Date ID (YYYY-MM-DD)
-        const getLocalDateId = () => {
-            const now = new Date();
-            const offset = now.getTimezoneOffset() * 60000;
-            return (new Date(now - offset)).toISOString().split('T')[0];
-        };
-
-        // Helper: Format date to MM/DD/YYYY
-        const formatMMDDYYYY = (isoString) => {
-            const [year, month, day] = isoString.split('-');
-            return `${month}/${day}/${year}`;
+        const getLocalData = () => {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return {
+                id: `${year}-${month}-${day}`,
+                display: `${month}/${day}/${year}`,
+                verbose: d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+            };
         };
 
         window.showScreen = (id) => {
@@ -115,9 +109,10 @@
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
             document.getElementById('screen-'+id).classList.add('active');
             document.getElementById('nav-'+id).classList.add('active');
+            render();
         };
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             listeners.forEach(u => u());
             if (user) {
                 userId = user.uid;
@@ -131,18 +126,25 @@
         });
 
         function startSync() {
-            listeners.push(onSnapshot(collection(db, `users/${userId}/pills`), (s) => { userPills = s.docs.map(d => ({id: d.id, ...d.data()})); render(); }));
-            listeners.push(onSnapshot(query(collection(db, `users/${userId}/history`), orderBy('timestamp', 'desc')), (s) => { globalHistory = s.docs.map(d => ({id: d.id, ...d.data()})); render(); }));
+            listeners.push(onSnapshot(collection(db, `users/${userId}/pills`), (s) => { 
+                userPills = s.docs.map(d => ({id: d.id, ...d.data()})); 
+                render(); 
+            }));
+            listeners.push(onSnapshot(query(collection(db, `users/${userId}/history`), orderBy('timestamp', 'desc')), (s) => { 
+                globalHistory = s.docs.map(d => ({id: d.id, ...d.data()})); 
+                render(); 
+            }));
         }
 
         window.toggleCycle = async (pillId, pillName, time) => {
-            const today = getLocalDateId();
-            const logId = `${today}_${pillId}_${time}`;
+            const local = getLocalData();
+            const logId = `${local.id}_${pillId}_${time}`;
             const current = globalHistory.find(h => h.id === logId);
 
             if (!current) {
                 await setDoc(doc(db, `users/${userId}/history`, logId), {
-                    status: 'taken', pillName, timeSlot: time, date: today, timestamp: serverTimestamp(), displayTime: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+                    status: 'taken', pillName, timeSlot: time, dateDisplay: local.display,
+                    timestamp: serverTimestamp(), displayTime: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
                 });
             } else if (current.status === 'taken') {
                 await setDoc(doc(db, `users/${userId}/history`, logId), { ...current, status: 'missed', timestamp: serverTimestamp() });
@@ -151,68 +153,60 @@
             }
         };
 
-        window.exportReport = () => {
-            let report = `MEDICATION ADHERENCE REPORT\nGenerated: ${new Date().toLocaleString()}\n\n`;
-            globalHistory.slice(0, 50).forEach(h => {
-                report += `[${formatMMDDYYYY(h.date)} ${h.displayTime || '--:--'}] ${h.pillName.toUpperCase()} - ${h.status.toUpperCase()}\n`;
-            });
-            const win = window.open("", "Report", "width=600,height=800");
-            win.document.write(`<pre style="font-family:monospace; padding:20px;">${report}</pre>`);
-            win.document.title = "PillTracker Export";
-        };
-
         function render() {
-            const today = getLocalDateId();
-            document.getElementById('todayDate').innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+            const local = getLocalData();
+            document.getElementById('todayDateDisplay').innerText = local.verbose;
 
             document.getElementById('manageList').innerHTML = userPills.map(p => `
                 <div class="bg-white p-4 rounded-2xl flex justify-between items-center border">
                     <span class="font-bold">${p.name}</span>
-                    <button onclick="removePill('${p.id}')" class="text-red-500 text-xs">Delete</button>
+                    <button onclick="removePill('${p.id}')" class="text-red-500 text-xs font-bold">DELETE</button>
                 </div>
             `).join('');
 
             ['morning', 'afternoon', 'night'].forEach(slot => {
-                const header = slot === 'morning' ? '☀️ Morning' : slot === 'afternoon' ? '🌤️ Afternoon' : '🌙 Night';
-                const color = slot === 'morning' ? 'text-orange-500' : slot === 'afternoon' ? 'text-blue-500' : 'text-indigo-700';
-                
                 document.getElementById(`slot-${slot}`).innerHTML = `
-                    <h4 class="${color} font-black mb-3 uppercase text-xs tracking-widest">${header}</h4>
+                    <h4 class="text-xs font-black text-slate-400 mb-3 uppercase">${slot}</h4>
                     <div class="space-y-3">${userPills.map(p => {
-                        const h = globalHistory.find(x => x.id === `${today}_${p.id}_${slot}`);
-                        const stateClass = h?.status === 'taken' ? 'state-taken' : h?.status === 'missed' ? 'state-missed' : '';
-                        const icon = h?.status === 'taken' ? '✓' : h?.status === 'missed' ? '✕' : '';
+                        const h = globalHistory.find(x => x.id === `${local.id}_${p.id}_${slot}`);
+                        const statusColor = h?.status === 'taken' ? 'state-taken' : h?.status === 'missed' ? 'state-missed' : '';
                         return `
-                            <div class="bg-white p-4 rounded-3xl flex justify-between items-center shadow-sm border border-slate-50">
-                                <div>
-                                    <div class="font-bold ${h?.status ? 'text-slate-400' : 'text-slate-800'}">${p.name}</div>
-                                    <div class="text-[10px] font-black uppercase ${h?.status === 'taken' ? 'text-emerald-500' : h?.status === 'missed' ? 'text-red-500' : 'text-slate-300'}">
-                                        ${h?.status ? `${h.status} at ${h.displayTime || '?'}` : 'Pending'}
-                                    </div>
-                                </div>
-                                <div class="check-circle ${stateClass}" onclick="toggleCycle('${p.id}', '${p.name}', '${slot}')">${icon}</div>
+                            <div class="bg-white p-4 rounded-3xl flex justify-between items-center border">
+                                <div><div class="font-bold">${p.name}</div><div class="text-[10px] uppercase font-black text-slate-300">${h ? h.status + ' at ' + h.displayTime : 'Pending'}</div></div>
+                                <div class="check-circle ${statusColor}" onclick="toggleCycle('${p.id}', '${p.name}', '${slot}')">${h?.status === 'taken' ? '✓' : h?.status === 'missed' ? '✕' : ''}</div>
                             </div>
                         `;
                     }).join('')}</div>
                 `;
             });
 
-            document.getElementById('activityLog').innerHTML = globalHistory.slice(0, 20).map(h => `
-                <div class="bg-white p-4 rounded-2xl border-l-4 ${h.status === 'taken' ? 'border-emerald-500' : 'border-red-500'} flex justify-between items-center">
-                    <div>
-                        <div class="text-[10px] font-black text-slate-400 uppercase">${formatMMDDYYYY(h.date)} • ${h.timeSlot}</div>
-                        <div class="font-bold">${h.pillName}</div>
-                    </div>
+            document.getElementById('activityLog').innerHTML = globalHistory.slice(0, 15).map(h => `
+                <div class="bg-white p-4 rounded-2xl border-l-4 ${h.status === 'taken' ? 'border-emerald-500' : 'border-red-500'} flex justify-between items-center shadow-sm">
+                    <div><div class="text-[10px] font-black text-slate-400 uppercase">${h.dateDisplay} • ${h.timeSlot}</div><div class="font-bold">${h.pillName}</div></div>
                     <div class="text-sm font-bold ${h.status === 'taken' ? 'text-emerald-600' : 'text-red-600'}">${h.status.toUpperCase()}</div>
                 </div>
             `).join('') || '<div class="text-center p-10 text-slate-400">No records found.</div>';
         }
-        
-        window.removePill = async (id) => { if(confirm('Delete?')) await deleteDoc(doc(db, `users/${userId}/pills/${id}`)); };
+
+        // Auth Buttons
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (e) {
+                if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                } else { alert(e.message); }
+            }
+        });
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
         document.getElementById('add-pill-btn').addEventListener('click', async () => {
             const name = document.getElementById('pillInput').value.trim();
             if(name) { await addDoc(collection(db, `users/${userId}/pills`), { name }); document.getElementById('pillInput').value = ''; }
         });
+        window.removePill = async (id) => { if(confirm('Delete?')) await deleteDoc(doc(db, `users/${userId}/pills/${id}`)); };
+        window.exportReport = () => { /* Export logic */ };
     </script>
 </body>
 </html>
